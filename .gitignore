@@ -1,0 +1,11 @@
+bin/
+obj/
+temp/
+packages/
+.vs/
+*.suo
+*.ncb
+*.user
+*.svcinfo
+*.xsd
+*.wsdl
