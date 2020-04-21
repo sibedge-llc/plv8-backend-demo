@@ -26,7 +26,21 @@ namespace PostgresToJson.Controllers
             try
             {
                 string json = (await _connection.QueryAsync<string>(container.Content)).First();
-                //var ret = JsonConvert.DeserializeObject<object>(json);
+                return Content(json, "application/json");
+            }
+            catch (Exception e)
+            {
+                return this.BadRequest();
+            }
+        }
+
+        [HttpPost("graphql")]
+        public async Task<IActionResult> ExecuteGrapgQl([FromBody] Container container)
+        {
+            try
+            {
+                var sql = $"SELECT public.execute_qraphql('{container.Content}', 'public');";
+                string json = (await _connection.QueryAsync<string>(sql)).First();
                 return Content(json, "application/json");
             }
             catch (Exception e)
