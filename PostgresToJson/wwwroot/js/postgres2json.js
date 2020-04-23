@@ -67,5 +67,5 @@ $(document).ready(function ()
         , syntax: "css"
     });
 
-    setTimeout(() => $("#sqlEditorHolder").hide(), 100);
+    setTimeout(() => $("#sqlEditorHolder").hide(), 200);
 });

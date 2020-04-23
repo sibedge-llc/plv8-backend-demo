@@ -39,7 +39,7 @@ namespace PostgresToJson.Controllers
         {
             try
             {
-                var sql = $"SELECT public.execute_qraphql('{container.Content}', 'public');";
+                var sql = $"SELECT graphql.execute('{container.Content}', 'public');";
                 string json = (await _connection.QueryAsync<string>(sql)).First();
                 return Content(json, "application/json");
             }
