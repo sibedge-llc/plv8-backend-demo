@@ -92,6 +92,22 @@
                 });
             }
 
+            ret.Add(new Element
+            {
+                Name = "Mutation",
+                Interfaces = new List<Type>(),
+                Fields = new List<Field>(),
+                Kind = Kinds.Object
+            });
+
+            ret.Add(new Element
+            {
+                Name = "Subscription",
+                Interfaces = new List<Type>(),
+                Fields = new List<Field>(),
+                Kind = Kinds.Object
+            });
+
             return ret;
         }
 

@@ -10,5 +10,6 @@
         public const string Object = "OBJECT";
         public const string List = "LIST";
         public const string NonNull = "NON_NULL";
+        public const string Union = "UNION";
     }
 }
