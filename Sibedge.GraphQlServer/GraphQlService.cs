@@ -1,5 +1,6 @@
 ﻿namespace Sibedge.GraphQlServer
 {
+    using System.Collections.Generic;
     using System.Data;
     using System.Linq;
     using System.Threading.Tasks;
@@ -31,7 +32,7 @@
 
                 var data = new
                 {
-                    Data = new
+                    data = new
                     {
                         __schema = schema
                     }
@@ -50,9 +51,22 @@
 
         private async ValueTask<IntrospectionSchema> GetIntrospectionData()
         {
-            var result = new IntrospectionSchema();
+            var result = new IntrospectionSchema
+            {
+                Directives = new List<object>(),
+                MutationType = new NamedItem("Mutation"),
+                SubscriptionType = new NamedItem("Subscription"),
+                QueryType = new NamedItem("Query")
+            };
 
             return result;
+        }
+
+        private async ValueTask<List<Element>> GetTypes()
+        {
+            var ret = new List<Element>();
+
+            return ret;
         }
     }
 }
