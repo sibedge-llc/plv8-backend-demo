@@ -28,7 +28,7 @@
 
         /// <summary> Fields </summary>
         [JsonProperty("fields")]
-        public List<object> Fields { get; set; }
+        public List<Field> Fields { get; set; }
 
         /// <summary> Kind </summary>
         [JsonProperty("kind")]
