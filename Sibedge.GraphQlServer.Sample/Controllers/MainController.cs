@@ -34,7 +34,6 @@
         public async ValueTask<IActionResult> Query([FromBody]GraphQlQuery query)
         {
             var json = await _service.PerformQuery(query);
-            //// var json = System.IO.File.ReadAllText(@"..\intro.json");
 
             return Content(json, "application/json");
         }

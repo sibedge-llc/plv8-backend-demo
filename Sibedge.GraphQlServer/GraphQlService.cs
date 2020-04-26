@@ -71,12 +71,22 @@
             var fieldInfoList = (await this.GetFieldInfo()).ToList();
 
             ret.Add(this.CreateNode(fieldInfoList));
+            ret.Add(this.CreateQuery(fieldInfoList));
+            ret.AddRange(this.CreateTables(fieldInfoList));
+
+            // Data types
+            ret.Add(new Element
+            {
+                Name = "Id",
+                Description = "The `Id` scalar type represents a unique identifier.",
+                Kind = Kinds.Scalar
+            });
 
             foreach (var dataType in fieldInfoList.Select(x => x.DataType).Distinct())
             {
                 ret.Add(new Element
                 {
-                    Name = dataType.Replace(' ','_'),
+                    Name = dataType.ToTypeName(),
                     Description = $"The '{dataType}' scalar type.",
                     Kind = Kinds.Scalar
                 });
@@ -117,6 +127,66 @@
             foreach (var tableName in fieldInfoList.Select(x => x.TableName).Distinct())
             {
                 ret.PossibleTypes.Add(new Type(Kinds.Object, tableName));
+            }
+
+            return ret;
+        }
+
+        private Element CreateQuery(List<FieldInfo> fieldInfoList)
+        {
+            var ret = new Element
+            {
+                Name = "Query",
+                Interfaces = new List<Type>(),
+                Kind = Kinds.Object,
+                Fields = new List<Field>()
+            };
+
+            foreach (var tableName in fieldInfoList.Select(x => x.TableName).Distinct())
+            {
+                ret.Fields.Add(new Field
+                {
+                    Name = tableName,
+                    Type = Type.CreateNonNullList(Kinds.Object, tableName)
+                });
+            }
+
+            return ret;
+        }
+
+        private List<Element> CreateTables(List<FieldInfo> fieldInfoList)
+        {
+            var ret = new List<Element>();
+
+            var tables = fieldInfoList.GroupBy(x => x.TableName);
+
+            foreach (var table in tables)
+            {
+                var element = new Element
+                {
+                    Name = table.Key,
+                    Description = table.Key,
+                    Interfaces = new List<Type> { new Type(Kinds.Interface, "Node") },
+                    Kind = Kinds.Object,
+                    Fields = new List<Field>()
+                };
+
+                foreach (var column in table)
+                {
+                    var dataTypeName = column.ColumnName.ToLowerInvariant() == "id"
+                        ? "Id"
+                        : column.DataType.ToTypeName();
+
+                    element.Fields.Add(new Field
+                    {
+                        Name = column.ColumnName,
+                        Type = column.IsNullable
+                            ? new Type(Kinds.Scalar, dataTypeName)
+                            : Type.CreateNonNull(Kinds.Scalar, dataTypeName)
+                    });
+                }
+
+                ret.Add(element);
             }
 
             return ret;
