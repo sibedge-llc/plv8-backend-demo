@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Sibedge.GraphQlServer
+namespace Sibedge.GraphQlServer.Sample
 {
     public class Program
     {

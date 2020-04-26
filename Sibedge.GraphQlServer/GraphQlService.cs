@@ -1,31 +1,27 @@
-﻿namespace Sibedge.GraphQlServer.Controllers
+﻿namespace Sibedge.GraphQlServer
 {
     using System.Data;
     using System.Linq;
     using System.Threading.Tasks;
     using Dapper;
-    using Microsoft.AspNetCore.Mvc;
     using Models;
     using Models.Introspection;
     using Newtonsoft.Json;
 
-    /// <summary> Main controller </summary>
-    [ApiController]
-    [Route("[controller]")]
-    public class MainController : ControllerBase
+    /// <summary> GraphQL service </summary>
+    public class GraphQlService
     {
         private IDbConnection _connection;
 
         /// <summary> ctor </summary>
-        public MainController(IDbConnection connection)
+        public GraphQlService(IDbConnection connection)
         {
             _connection = connection;
         }
 
         /// <summary> Execute graphQL query </summary>
         /// <param name="query"> Query data </param>
-        [HttpPost]
-        public async ValueTask<IActionResult> Query([FromBody]GraphQlQuery query)
+        public async ValueTask<string> PerformQuery(GraphQlQuery query)
         {
             string json;
 
@@ -49,7 +45,7 @@
                 json = (await _connection.QueryAsync<string>(sql)).First();
             }
 
-            return Content(json, "application/json");
+            return json;
         }
 
         private async ValueTask<IntrospectionSchema> GetIntrospectionData()

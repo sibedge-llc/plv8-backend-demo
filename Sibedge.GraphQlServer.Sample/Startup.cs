@@ -1,4 +1,4 @@
-namespace Sibedge.GraphQlServer
+namespace Sibedge.GraphQlServer.Sample
 {
     using System.Data;
     using Microsoft.AspNetCore.Builder;
@@ -23,6 +23,7 @@ namespace Sibedge.GraphQlServer
             services.AddControllers();
 
             services.AddScoped<IDbConnection>(s => new NpgsqlConnection(this.Configuration.GetConnectionString("Default")));
+            services.AddTransient<GraphQlService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
