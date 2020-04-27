@@ -69,10 +69,11 @@
         {
             var ret = new List<Element>();
             var fieldInfoList = (await this.GetFieldInfo()).ToList();
+            var foreignKeyInfoList = (await this.GetForeignKeyInfo()).ToList();
 
             ret.Add(this.CreateNode(fieldInfoList));
             ret.Add(this.CreateQuery(fieldInfoList));
-            ret.AddRange(this.CreateTables(fieldInfoList));
+            ret.AddRange(this.CreateTables(fieldInfoList, foreignKeyInfoList));
 
             // Data types
             ret.Add(new Element
@@ -119,6 +120,15 @@
                           WHERE ic.table_schema::name = 'public'::name;";
 
             return _connection.QueryAsync<FieldInfo>(sql);
+        }
+
+        private Task<IEnumerable<ForeignKeyInfo>> GetForeignKeyInfo()
+        {
+            var sql = @"SELECT table_name AS ""TableName"", column_name AS ""ColumnName"",
+                          foreign_table_name AS ""ForeignTableName"", foreign_column_name AS ""ForeignColumnName""
+                        FROM graphql.schema_foreign_keys";
+
+            return _connection.QueryAsync<ForeignKeyInfo>(sql);
         }
 
         private Element CreateNode(List<FieldInfo> fieldInfoList)
@@ -170,7 +180,7 @@
             return ret;
         }
 
-        private List<Element> CreateTables(List<FieldInfo> fieldInfoList)
+        private List<Element> CreateTables(List<FieldInfo> fieldInfoList, List<ForeignKeyInfo> foreignKeyList)
         {
             var ret = new List<Element>();
 
@@ -199,6 +209,28 @@
                         Type = column.IsNullable
                             ? new Type(Kinds.Scalar, dataTypeName)
                             : Type.CreateNonNull(Kinds.Scalar, dataTypeName)
+                    });
+                }
+
+                var singleLinks = foreignKeyList.Where(x => x.TableName == table.Key);
+                foreach (var singleLink in singleLinks)
+                {
+                    element.Fields.Add(new Field
+                    {
+                        Name = singleLink.ColumnName.EndsWith("Id")
+                            ? singleLink.ColumnName.Substring(0, singleLink.ColumnName.Length - 2)
+                            : singleLink.ColumnName,
+                        Type = new Type(Kinds.Object, singleLink.ForeignTableName)
+                    });
+                }
+
+                var multipleLinks = foreignKeyList.Where(x => x.ForeignTableName == table.Key);
+                foreach (var multipleLink in multipleLinks)
+                {
+                    element.Fields.Add(new Field
+                    {
+                        Name = multipleLink.TableName,
+                        Type = new Type(Kinds.Object, multipleLink.TableName)
                     });
                 }
 
