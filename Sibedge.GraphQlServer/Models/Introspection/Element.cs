@@ -8,7 +8,7 @@
     {
         /// <summary> Input fields </summary>
         [JsonProperty("inputFields")]
-        public List<object> InputFields { get; set; }
+        public List<InputField> InputFields { get; set; }
 
         /// <summary> Name </summary>
         [JsonProperty("name")]

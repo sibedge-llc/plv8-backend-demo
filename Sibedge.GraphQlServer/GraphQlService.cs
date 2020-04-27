@@ -14,6 +14,7 @@
     /// <summary> GraphQL service </summary>
     public class GraphQlService
     {
+        private static string[] FilterOperators = new [] { "less", "greater", "equal" };
         private IDbConnection _connection;
 
         /// <summary> ctor </summary>
@@ -74,6 +75,7 @@
             ret.Add(this.CreateNode(fieldInfoList));
             ret.Add(this.CreateQuery(fieldInfoList));
             ret.AddRange(this.CreateTables(fieldInfoList, foreignKeyInfoList));
+            ret.AddRange(this.CreateFilters(fieldInfoList));
 
             // Data types
             ret.Add(new Element
@@ -93,6 +95,7 @@
                 });
             }
 
+            // Mutation, subscription
             ret.Add(new Element
             {
                 Name = "Mutation",
@@ -173,7 +176,15 @@
                 ret.Fields.Add(new Field
                 {
                     Name = tableName,
-                    Type = Type.CreateNonNullList(Kinds.Object, tableName)
+                    Type = Type.CreateNonNullList(Kinds.Object, tableName),
+                    Args = new List<InputField>
+                    {
+                        new InputField
+                        {
+                            Name = "id",
+                            Type = new Type(Kinds.InputObject, "IdFilter")
+                        }
+                    }
                 });
             }
 
@@ -237,6 +248,31 @@
                 ret.Add(element);
             }
 
+            return ret;
+        }
+
+        private List<Element> CreateFilters(List<FieldInfo> fieldInfoList)
+        {
+            var ret = new List<Element>
+            {
+                new Element
+                {
+                    Name = "IdFilter",
+                    Kind = Kinds.InputObject,
+                    InputFields = new List<InputField>
+                    {
+                        new InputField
+                        {
+                            Name = "id",
+                            Description = "The id of the object.",
+                            Type = Type.CreateNonNull(Kinds.Scalar, "Id")
+                        }
+                    }
+                }
+            };
+
+
+            ////var fields = typeof(FilterOperators).
             return ret;
         }
     }

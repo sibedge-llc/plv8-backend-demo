@@ -59,6 +59,7 @@ function viewTable(selection, tableName, result, where, level)
 
   var qraphqlFilter = '';
   var qraphqlFilter0 = '';
+  var idFilterValue = -1;
 
   //-- grapghql filter  
   if (selection.arguments !== undefined)
@@ -89,6 +90,14 @@ function viewTable(selection, tableName, result, where, level)
         qraphqlFilter = `a${level}.${qraphqlFilter}`;
       }
     }
+	
+	var idFilterArgs = selection.arguments.filter(x => x.name.value === 'id');
+	if (level === 1 && idFilterArgs.length > 0)
+    {
+      var idFilter = idFilterArgs[0];
+      idFilterValue = idFilter.value.value;
+	  qraphqlFilter = 'a1."Id"=' + idFilterValue;
+	}
   }
 
   var sqlOperator = '';
@@ -197,8 +206,8 @@ function viewTable(selection, tableName, result, where, level)
   });
 
   if (items.length > 0)
-  {
-    result[tableName] = items;
+  {    
+    result[tableName] = (idFilterValue >= 0) ? items[0] : items;
   }
 }
 
