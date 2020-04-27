@@ -1,0 +1,45 @@
+CREATE TABLE graphql.additional_columns
+(
+  column_name name NOT NULL,
+  table_name name NOT NULL,
+  PRIMARY KEY (column_name, table_name)
+);
+
+CREATE TABLE graphql.additional_foreign_keys
+(
+  column_name name NOT NULL,
+  foreign_table_name name NOT NULL,
+  foreign_column_name name NOT NULL,
+  table_name name NOT NULL,
+  PRIMARY KEY (column_name, foreign_table_name, foreign_column_name, table_name)
+);
+
+CREATE MATERIALIZED VIEW graphql.schema_columns AS 
+ SELECT columns.column_name,
+    columns.table_name
+   FROM information_schema.columns
+  WHERE columns.table_schema::name <> ALL (ARRAY['pg_catalog'::name, 'information_schema'::name, 'graphql'::name])
+UNION
+ SELECT additional_columns.column_name,
+    additional_columns.table_name
+   FROM graphql.additional_columns
+WITH DATA;
+
+CREATE MATERIALIZED VIEW graphql.schema_foreign_keys AS 
+ SELECT kcu.column_name,
+    ccu.table_name AS foreign_table_name,
+    ccu.column_name AS foreign_column_name,
+    tc.table_name
+   FROM information_schema.table_constraints tc
+     JOIN information_schema.key_column_usage kcu ON tc.constraint_name::name
+	   = kcu.constraint_name::name AND tc.table_schema::name = kcu.table_schema::name
+     JOIN information_schema.constraint_column_usage ccu ON ccu.constraint_name::name
+	   = tc.constraint_name::name AND ccu.table_schema::name = tc.table_schema::name
+  WHERE tc.constraint_type::text = 'FOREIGN KEY'::text
+UNION
+ SELECT additional_foreign_keys.column_name,
+    additional_foreign_keys.foreign_table_name,
+    additional_foreign_keys.foreign_column_name,
+    additional_foreign_keys.table_name
+   FROM graphql.additional_foreign_keys
+WITH DATA;
