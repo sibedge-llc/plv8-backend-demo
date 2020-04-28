@@ -188,6 +188,16 @@
                         {
                             Name = "filter",
                             Type = new Type(Kinds.InputObject, $"{tableName}Filter")
+                        },
+                        new InputField
+                        {
+                            Name = "orderBy",
+                            Type = new Type(Kinds.Enum, $"{tableName}OrderBy")
+                        },
+                        new InputField
+                        {
+                            Name = "orderByDescending",
+                            Type = new Type(Kinds.Enum, $"{tableName}OrderByDescending")
                         }
                     }
                 });
@@ -253,6 +263,16 @@
                             {
                                 Name = "filter",
                                 Type = new Type(Kinds.InputObject, $"{multipleLink.TableName}Filter")
+                            },
+                            new InputField
+                            {
+                                Name = "orderBy",
+                                Type = new Type(Kinds.Enum, $"{multipleLink.TableName}OrderBy")
+                            },
+                            new InputField
+                            {
+                                Name = "orderByDescending",
+                                Type = new Type(Kinds.Enum, $"{multipleLink.TableName}OrderByDescending")
                             }
                         }
                     });
@@ -308,6 +328,26 @@
                         Name = x.ColumnName,
                         Description = x.ColumnName,
                         Type = Type.CreateNonNull(Kinds.Object, "OperatorFilter")
+                    }).ToList()
+                });
+
+                ret.Add(new Element
+                {
+                    Name = $"{table.Key}OrderBy",
+                    Kind = Kinds.Enum,
+                    EnumValues = table.Select(x => new EnumValue()
+                    {
+                        Name = x.ColumnName
+                    }).ToList()
+                });
+
+                ret.Add(new Element
+                {
+                    Name = $"{table.Key}OrderByDescending",
+                    Kind = Kinds.Enum,
+                    EnumValues = table.Select(x => new EnumValue()
+                    {
+                        Name = x.ColumnName
                     }).ToList()
                 });
             }

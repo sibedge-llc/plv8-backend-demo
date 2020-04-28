@@ -24,7 +24,7 @@
 
         /// <summary> Enum values </summary>
         [JsonProperty("enumValues")]
-        public List<string> EnumValues { get; set; }
+        public List<EnumValue> EnumValues { get; set; }
 
         /// <summary> Fields </summary>
         [JsonProperty("fields")]

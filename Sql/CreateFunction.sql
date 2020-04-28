@@ -61,6 +61,7 @@ function viewTable(selection, tableName, result, where, level)
   var qraphqlFilter = '';
   var qraphqlFilter0 = '';
   var idFilterValue = -1;
+  var orderBy = '';
 
   //-- grapghql filter  
   if (selection.arguments !== undefined)
@@ -108,8 +109,20 @@ function viewTable(selection, tableName, result, where, level)
 	if (level === 1 && idFilterArgs.length > 0)
     {
       var idFilter = idFilterArgs[0];
-      idFilterValue = idFilter.value.value;
-	  qraphqlFilter = 'a1."Id"=' + idFilterValue;
+	  qraphqlFilter = 'a1."Id"=' + idFilter.value.value;
+	}
+	
+	var orderArgs = selection.arguments.filter(x => x.name.value === 'orderBy');
+	var orderDescArgs = selection.arguments.filter(x => x.name.value === 'orderByDescending');
+	if (orderArgs.length > 0)
+    {
+      var order = orderArgs[0];
+	  orderBy = ` ORDER BY a${level}."${order.value.value}"`;
+	}
+	else if (orderDescArgs.length > 0)
+    {
+      var orderDesc = orderDescArgs[0];
+	  orderBy = ` ORDER BY a${level}."${orderDesc.value.value}" DESC`;
 	}
   }
 
@@ -125,7 +138,7 @@ function viewTable(selection, tableName, result, where, level)
     var fields = rows.map(a => (a.column_name === 'CategoryFamilyId') ? `a${level}."FamilyId" AS "CategoryFamilyId"` : `a${level}."${a.column_name}"`);
     //-- то же самое - JOIN, см. далее
   
-    var query = `SELECT ${fields.join(", ")} FROM ${schema}."${tableName}" a${level} ${where} ${sqlOperator} ${qraphqlFilter};`;
+    var query = `SELECT ${fields.join(", ")} FROM ${schema}."${tableName}" a${level} ${where} ${sqlOperator} ${qraphqlFilter}${orderBy};`;
 
     plv8.elog(NOTICE, query);
 
