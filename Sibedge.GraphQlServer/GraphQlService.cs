@@ -14,7 +14,7 @@
     /// <summary> GraphQL service </summary>
     public class GraphQlService
     {
-        private static string[] FilterOperators = new [] { "less", "greater", "equal" };
+        private static string[] FilterOperators = new [] { "less", "greater", "equals", "contains" };
         private IDbConnection _connection;
 
         /// <summary> ctor </summary>
@@ -183,6 +183,11 @@
                         {
                             Name = "id",
                             Type = new Type(Kinds.InputObject, "IdFilter")
+                        },
+                        new InputField
+                        {
+                            Name = "filter",
+                            Type = new Type(Kinds.InputObject, $"{tableName}Filter")
                         }
                     }
                 });
@@ -241,7 +246,15 @@
                     element.Fields.Add(new Field
                     {
                         Name = multipleLink.TableName,
-                        Type = new Type(Kinds.Object, multipleLink.TableName)
+                        Type = new Type(Kinds.Object, multipleLink.TableName),
+                        Args = new List<InputField>
+                        {
+                            new InputField
+                            {
+                                Name = "filter",
+                                Type = new Type(Kinds.InputObject, $"{multipleLink.TableName}Filter")
+                            }
+                        }
                     });
                 }
 
@@ -268,11 +281,37 @@
                             Type = Type.CreateNonNull(Kinds.Scalar, "Id")
                         }
                     }
+                },
+                new Element
+                {
+                    Name = "OperatorFilter",
+                    Kind = Kinds.InputObject,
+                    InputFields = FilterOperators.Select(x => new InputField
+                    {
+                        Name = x,
+                        Description = $"'{x}' operator.",
+                        Type = Type.CreateNonNull(Kinds.Scalar, "text")
+                    }).ToList()
                 }
             };
 
+            var tables = fieldInfoList.GroupBy(x => x.TableName);
 
-            ////var fields = typeof(FilterOperators).
+            foreach (var table in tables)
+            {
+                ret.Add(new Element
+                {
+                    Name = $"{table.Key}Filter",
+                    Kind = Kinds.InputObject,
+                    InputFields = table.Select(x => new InputField
+                    {
+                        Name = x.ColumnName,
+                        Description = x.ColumnName,
+                        Type = Type.CreateNonNull(Kinds.Object, "OperatorFilter")
+                    }).ToList()
+                });
+            }
+
             return ret;
         }
     }

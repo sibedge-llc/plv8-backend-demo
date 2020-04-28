@@ -20,7 +20,8 @@ var operators =
 {
   less: '<',
   greater: '>',
-  equal: '='
+  equals: '=',
+  contains: ' ILIKE '
 };
 
 function distinct(value, index, self)
@@ -68,26 +69,38 @@ function viewTable(selection, tableName, result, where, level)
     if (args.length > 0)
     {
       var filter = args[0];
-      var filterVal = filter.value.fields[0];
-
-      if (filterVal !== undefined)
+      
+	  var filterParts = filter.value.fields
+	      .filter(x => x !== undefined)
+		  .map(filterVal =>
       {
         if (filterVal.value.kind !== 'ObjectValue')
         {
-          qraphqlFilter = `"${filterVal.name.value}"=${filterVal.value.value}`;
+          return (filterVal.value.kind === 'StringValue')
+		    ? `a${level}."${filterVal.name.value}"='${filterVal.value.value}'`
+		    : `a${level}."${filterVal.name.value}"=${filterVal.value.value}`;
         }
         else
         {
+		  var value1 = (filterVal.value.fields[0].value.kind === 'StringValue') 
+		    ? (filterVal.value.fields[0].name.value === 'contains' 
+                 ? `'%${filterVal.value.fields[0].value.value}%'`
+				 : `'${filterVal.value.fields[0].value.value}'`)
+			: filterVal.value.fields[0].value.value;
+			
           var operator = operators[filterVal.value.fields[0].name.value];
-          qraphqlFilter = `"${filterVal.name.value}"${operator}${filterVal.value.fields[0].value.value}`;
+          return `a${level}."${filterVal.name.value}"${operator}${value1}`;
         }
-
+      });
+	  
+	  if (filterParts.length > 0)
+	  {
+	    qraphqlFilter = filterParts.join(' AND ');
+		
         if (level === 1)
         {
           qraphqlFilter0 = qraphqlFilter;
         }
-
-        qraphqlFilter = `a${level}.${qraphqlFilter}`;
       }
     }
 	
