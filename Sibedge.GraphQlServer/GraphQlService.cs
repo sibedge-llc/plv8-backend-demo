@@ -198,6 +198,15 @@
                         {
                             Name = "orderByDescending",
                             Type = new Type(Kinds.Enum, $"{tableName}OrderByDescending")
+                        },                        new InputField
+                        {
+                            Name = "skip",
+                            Type = new Type(Kinds.InputObject, "Skip")
+                        },
+                        new InputField
+                        {
+                            Name = "take",
+                            Type = new Type(Kinds.InputObject, "Take")
                         }
                     }
                 });
@@ -273,6 +282,16 @@
                             {
                                 Name = "orderByDescending",
                                 Type = new Type(Kinds.Enum, $"{multipleLink.TableName}OrderByDescending")
+                            },
+                            new InputField
+                            {
+                                Name = "skip",
+                                Type = new Type(Kinds.InputObject, "Skip")
+                            },
+                            new InputField
+                            {
+                                Name = "take",
+                                Type = new Type(Kinds.InputObject, "Take")
                             }
                         }
                     });
@@ -312,7 +331,35 @@
                         Description = $"'{x}' operator.",
                         Type = Type.CreateNonNull(Kinds.Scalar, "text")
                     }).ToList()
-                }
+                },
+                new Element
+                {
+                    Name = "Skip",
+                    Kind = Kinds.InputObject,
+                    InputFields = new List<InputField>
+                    {
+                        new InputField
+                        {
+                            Name = "skip",
+                            Description = "Number of rows to skip.",
+                            Type = Type.CreateNonNull(Kinds.Scalar, "Skip")
+                        }
+                    }
+                },
+                new Element
+                {
+                    Name = "Take",
+                    Kind = Kinds.InputObject,
+                    InputFields = new List<InputField>
+                    {
+                        new InputField
+                        {
+                            Name = "take",
+                            Description = "Number of rows to take.",
+                            Type = Type.CreateNonNull(Kinds.Scalar, "Take")
+                        }
+                    }
+                },
             };
 
             var tables = fieldInfoList.GroupBy(x => x.TableName);

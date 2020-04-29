@@ -62,6 +62,7 @@ function viewTable(selection, tableName, result, where, level)
   var qraphqlFilter0 = '';
   var idFilterValue = -1;
   var orderBy = '';
+  var limit = '';
 
   //-- grapghql filter  
   if (selection.arguments !== undefined)
@@ -124,6 +125,19 @@ function viewTable(selection, tableName, result, where, level)
       var orderDesc = orderDescArgs[0];
 	  orderBy = ` ORDER BY a${level}."${orderDesc.value.value}" DESC`;
 	}
+	
+	var skipArgs = selection.arguments.filter(x => x.name.value === 'skip');
+	var takeArgs = selection.arguments.filter(x => x.name.value === 'take');
+	if (takeArgs.length > 0)
+    {
+      var take = takeArgs[0];
+	  limit = ' LIMIT ' + take.value.value;
+	}
+	if (skipArgs.length > 0)
+    {
+      var skip = skipArgs[0];
+	  limit += ' OFFSET ' + skip.value.value;
+	}
   }
 
   var sqlOperator = '';
@@ -138,7 +152,7 @@ function viewTable(selection, tableName, result, where, level)
     var fields = rows.map(a => (a.column_name === 'CategoryFamilyId') ? `a${level}."FamilyId" AS "CategoryFamilyId"` : `a${level}."${a.column_name}"`);
     //-- то же самое - JOIN, см. далее
   
-    var query = `SELECT ${fields.join(", ")} FROM ${schema}."${tableName}" a${level} ${where} ${sqlOperator} ${qraphqlFilter}${orderBy};`;
+    var query = `SELECT ${fields.join(", ")} FROM ${schema}."${tableName}" a${level} ${where} ${sqlOperator} ${qraphqlFilter}${orderBy}${limit};`;
 
     plv8.elog(NOTICE, query);
 
