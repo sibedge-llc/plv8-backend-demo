@@ -18,7 +18,7 @@ CREATE MATERIALIZED VIEW graphql.schema_columns AS
  SELECT columns.column_name,
     columns.table_name
    FROM information_schema.columns
-  WHERE columns.table_schema::name <> ALL (ARRAY['pg_catalog'::name, 'information_schema'::name, 'graphql'::name])
+  WHERE columns.table_schema::name = 'public'::name
 UNION
  SELECT additional_columns.column_name,
     additional_columns.table_name
@@ -36,6 +36,7 @@ CREATE MATERIALIZED VIEW graphql.schema_foreign_keys AS
      JOIN information_schema.constraint_column_usage ccu ON ccu.constraint_name::name
 	   = tc.constraint_name::name AND ccu.table_schema::name = tc.table_schema::name
   WHERE tc.constraint_type::text = 'FOREIGN KEY'::text
+    AND ccu.constraint_schema::name = 'public'::name
 UNION
  SELECT additional_foreign_keys.column_name,
     additional_foreign_keys.foreign_table_name,
