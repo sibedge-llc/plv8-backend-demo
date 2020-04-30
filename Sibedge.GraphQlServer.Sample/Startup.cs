@@ -24,6 +24,7 @@ namespace Sibedge.GraphQlServer.Sample
 
             services.AddScoped<IDbConnection>(s => new NpgsqlConnection(this.Configuration.GetConnectionString("Default")));
             services.AddTransient<GraphQlService>();
+            services.AddSingleton(this.Configuration.GetSection("Settings").Get<Settings>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

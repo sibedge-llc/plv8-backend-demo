@@ -16,11 +16,13 @@
     {
         private static string[] FilterOperators = new [] { "less", "greater", "equals", "contains" };
         private IDbConnection _connection;
+        private Settings _settings;
 
         /// <summary> ctor </summary>
-        public GraphQlService(IDbConnection connection)
+        public GraphQlService(IDbConnection connection, Settings settings)
         {
             _connection = connection;
+            _settings = settings;
         }
 
         /// <summary> Execute graphQL query </summary>
@@ -45,7 +47,7 @@
             }
             else
             {
-                var sql = $"SELECT graphql.execute('{query.Query}', 'public');";
+                var sql = $"SELECT graphql.execute('{query.Query}', '{_settings.Schema}');";
                 json = (await _connection.QueryAsync<string>(sql)).First();
             }
 
@@ -117,10 +119,10 @@
 
         private Task<IEnumerable<FieldInfo>> GetFieldInfo()
         {
-            var sql = @"SELECT gc.table_name AS ""TableName"", gc.column_name AS ""ColumnName"",
+            var sql = $@"SELECT gc.table_name AS ""TableName"", gc.column_name AS ""ColumnName"",
                           ic.data_type AS ""DataType"", ic.is_nullable='YES' AS ""IsNullable"" FROM graphql.schema_columns gc
                         LEFT JOIN information_schema.columns ic ON gc.table_name=ic.table_name AND gc.column_name=ic.column_name
-                          WHERE ic.table_schema::name = 'public'::name;";
+                          WHERE ic.table_schema::name = '{_settings.Schema}'::name;";
 
             return _connection.QueryAsync<FieldInfo>(sql);
         }
@@ -234,7 +236,7 @@
 
                 foreach (var column in table)
                 {
-                    var dataTypeName = column.ColumnName.ToLowerInvariant() == "id"
+                    var dataTypeName = column.ColumnName.ToLowerInvariant() == _settings.IdField.ToLowerInvariant()
                         ? "Id"
                         : column.DataType.ToTypeName();
 
@@ -252,8 +254,8 @@
                 {
                     element.Fields.Add(new Field
                     {
-                        Name = singleLink.ColumnName.EndsWith("Id")
-                            ? singleLink.ColumnName.Substring(0, singleLink.ColumnName.Length - 2)
+                        Name = singleLink.ColumnName.EndsWith(_settings.IdPostfix)
+                            ? singleLink.ColumnName.Substring(0, singleLink.ColumnName.Length - _settings.IdPostfix.Length)
                             : singleLink.ColumnName,
                         Type = new Type(Kinds.Object, singleLink.ForeignTableName)
                     });

@@ -24,6 +24,9 @@ var operators =
   contains: ' ILIKE '
 };
 
+var idField = 'Id';
+var idPostfix = 'Id';
+
 function distinct(value, index, self)
 {
   return self.indexOf(value) === index;
@@ -39,10 +42,10 @@ function viewTable(selection, tableName, result, where, level)
 
   var fkRowsAll = plv8.execute(fkQuery);
   
-  var fkRows = fkRowsAll.filter(x => x.column_name.length > 2).filter(function (item)
+  var fkRows = fkRowsAll.filter(x => x.column_name.length > idPostfix.length).filter(function (item)
   {
     return item.table_name === tableName
-             && tableKeys.includes(item.column_name.substr(0, item.column_name.length - 2));
+             && tableKeys.includes(item.column_name.substr(0, item.column_name.length - idPostfix.length));
   });
 
   var fkFields = fkRows.map(function(a, index) { return a.column_name });
@@ -97,7 +100,7 @@ function viewTable(selection, tableName, result, where, level)
 	  
 	  if (filterParts.length > 0)
 	  {
-	    qraphqlFilter = filterParts.join(' AND ');
+	    qraphqlFilter = ' ' + filterParts.join(' AND ');
 		
         if (level === 1)
         {
@@ -110,7 +113,7 @@ function viewTable(selection, tableName, result, where, level)
 	if (level === 1 && idFilterArgs.length > 0)
     {
       var idFilter = idFilterArgs[0];
-	  qraphqlFilter = 'a1."Id"=' + idFilter.value.value;
+	  qraphqlFilter = `a1."${idField}"=` + idFilter.value.value;
 	}
 	
 	var orderArgs = selection.arguments.filter(x => x.name.value === 'orderBy');
@@ -143,7 +146,7 @@ function viewTable(selection, tableName, result, where, level)
   var sqlOperator = '';
   if (qraphqlFilter.length > 0)
   {
-    sqlOperator = (where.length > 0) ? 'AND' : 'WHERE';
+    sqlOperator = (where.length > 0) ? ' AND' : ' WHERE';
   }
 
   if (rows.length >= 0)
@@ -152,21 +155,21 @@ function viewTable(selection, tableName, result, where, level)
     var fields = rows.map(a => (a.column_name === 'CategoryFamilyId') ? `a${level}."FamilyId" AS "CategoryFamilyId"` : `a${level}."${a.column_name}"`);
     //-- то же самое - JOIN, см. далее
   
-    var query = `SELECT ${fields.join(", ")} FROM ${schema}."${tableName}" a${level} ${where} ${sqlOperator} ${qraphqlFilter}${orderBy}${limit};`;
+    var query = `SELECT ${fields.join(", ")} FROM ${schema}."${tableName}" a${level} ${where}${sqlOperator}${qraphqlFilter}${orderBy}${limit};`;
 
     plv8.elog(NOTICE, query);
 
     items = plv8.execute(query);    
 
-    fkRows.filter(x => x.column_name.length > 2).map(function(fkRow, index)    
+    fkRows.filter(x => x.column_name.length > idPostfix.length).map(function(fkRow, index)    
     {
       //--plv8.elog(NOTICE, fkRow.column_name);
-      table.selections.map(function(field, index)
+      table.selections.map(field =>
       {
         //--plv8.elog(NOTICE, 'field:' + field.name.value);
-        if (field.name.value.toLowerCase() === fkRow.column_name.substr(0, fkRow.column_name.length - 2).toLowerCase())
+        if (field.name.value.toLowerCase() === fkRow.column_name.substr(0, fkRow.column_name.length - idPostfix.length).toLowerCase())
         {
-          var ids = items.map(function(a, index) { return a[fkRow.column_name] }).filter(function (item, pos) { return item !== null; }).filter(distinct);
+          var ids = items.map(a => a[fkRow.column_name]).filter(item => item !== null).filter(distinct);
           if (ids.length > 0)
           {
             var subResult = {};
@@ -178,72 +181,81 @@ function viewTable(selection, tableName, result, where, level)
             
             viewTable(field, fkRow.foreign_table_name, subResult, innerWhere, level + 1);
 
-            subResult[fkRow.foreign_table_name].map(function(a, index) { subResultOrdered[a[fkRow.foreign_column_name]] = a });
-            items.map(function(item, index) { item[field.name.value] = subResultOrdered[item[fkRow.column_name]]; });
+            subResult[fkRow.foreign_table_name].map(a => subResultOrdered[a[fkRow.foreign_column_name]] = a);
+            items.map(item => item[field.name.value] = subResultOrdered[item[fkRow.column_name]]);
           }
         }
       });
     });    
-  }
 
-  var fkReverseRows = fkRowsAll.filter(function (item, pos)
-  {
-    return item.foreign_table_name === tableName
-             && tableKeys.includes(item.table_name);
-  });
-
-  fkReverseRows.map(function(fkReverseRow, index)    
-  {
-    table.selections.map(function(field, index)
+    var fkReverseRows = fkRowsAll.filter(function (item, pos)
     {
-      if (field.name.value.toLowerCase() === fkReverseRow.table_name.toLowerCase())
+      return item.foreign_table_name === tableName
+             && tableKeys.includes(item.table_name);
+    });
+
+    fkReverseRows.map(fkReverseRow =>
+    {
+      table.selections.map(field =>
       {
-        var subResult = {};
-        var subResultOrdered = {};
-
-        sqlOperator = '';
-        if (level === 1 && qraphqlFilter0.length > 0)
+        if (field.name.value.toLowerCase() === fkReverseRow.table_name.toLowerCase())
         {
-          sqlOperator = (where.length > 0) ? 'AND' : 'WHERE';
-          if (!qraphqlFilter0.startsWith('a1.'))
+          var subResult = {};
+          var subResultOrdered = {};
+
+          sqlOperator = '';
+          if (level === 1 && qraphqlFilter0.length > 0)
           {
-            qraphqlFilter0 = `a1.${qraphqlFilter0}`;
+            sqlOperator = (where.length > 0) ? ' AND' : ' WHERE';
+            if (!qraphqlFilter0.startsWith('a1.'))
+            {
+              qraphqlFilter0 = `a1.${qraphqlFilter0}`;
+            }
           }
-        }
 
-        //-- то же самое - JOIN, пример: FamilyVersion->CategoryFamily->FamilyDisciplines
-        var reverse_column_name = (fkReverseRow.column_name === 'CategoryFamilyId') ? 'FamilyId' : fkReverseRow.column_name;
-        var innerWhere = 
-             ` JOIN ${schema}."${tableName}" a${level} ON a${level}."${fkReverseRow.foreign_column_name}"=a${level + 1}."${reverse_column_name}" ${where} ${sqlOperator} ${qraphqlFilter0}`;
+          //-- то же самое - JOIN, пример: FamilyVersion->CategoryFamily->FamilyDisciplines
+          var reverse_column_name = (fkReverseRow.column_name === 'CategoryFamilyId') ? 'FamilyId' : fkReverseRow.column_name;
+          var innerWhere = 
+             ` JOIN ${schema}."${tableName}" a${level} ON a${level}."${fkReverseRow.foreign_column_name}"=a${level + 1}."${reverse_column_name}" ${where}${sqlOperator}${qraphqlFilter0}`;
 
-        if (field.selectionSet !== undefined
-          && field.selectionSet.selections !== undefined
-          && field.selectionSet.selections.filter(x => x.name.value === fkReverseRow.column_name).length < 1)
-        {
-          var newSelection = {
+          if (limit.length > 0)
+		  {
+		    sqlOperator = (where.length > 0) || (qraphqlFilter0.length > 0)
+			  ? ' AND' : ' WHERE';
+			var ids = items.map(a => a[idField]);
+			
+			innerWhere += ` ${sqlOperator} a${level}."${idField}" IN(${ids.join(', ')})`;
+		  }
+
+          if (field.selectionSet !== undefined
+            && field.selectionSet.selections !== undefined
+            && field.selectionSet.selections.filter(x => x.name.value === fkReverseRow.column_name).length < 1)
+          {
+            var newSelection = {
                     "kind": "Field",
                     "name": {
                       "kind": "Name",
                       "value": fkReverseRow.column_name
                     }};
-          field.selectionSet.selections.push(newSelection);
-        }
+            field.selectionSet.selections.push(newSelection);
+          }
 
-        viewTable(field, fkReverseRow.table_name, subResult, innerWhere, level + 1);
+          viewTable(field, fkReverseRow.table_name, subResult, innerWhere, level + 1);
 
-        if (subResult[fkReverseRow.table_name] !== undefined)
-        {
-          subResult[fkReverseRow.table_name].map(function(a, index)
+          if (subResult[fkReverseRow.table_name] !== undefined)
           {
-            subResultOrdered[a[fkReverseRow.column_name]] = subResultOrdered[a[fkReverseRow.column_name]] || [];
-            subResultOrdered[a[fkReverseRow.column_name]].push(a);
-          });
-        }
+            subResult[fkReverseRow.table_name].map(function(a, index)
+            {
+              subResultOrdered[a[fkReverseRow.column_name]] = subResultOrdered[a[fkReverseRow.column_name]] || [];
+              subResultOrdered[a[fkReverseRow.column_name]].push(a);
+            });
+          }
         
-        items.map(function(item, index) { item[field.name.value] = subResultOrdered[item["Id"]]; });
-      }
+          items.map(function(item, index) { item[field.name.value] = subResultOrdered[item[idField]]; });
+        }
+      });
     });
-  });
+  }
 
   if (items.length > 0)
   {    
