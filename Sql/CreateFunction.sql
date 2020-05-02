@@ -27,6 +27,8 @@ var operators =
 var idField = 'Id';
 var idPostfix = 'Id';
 
+var aliases = plv8.execute('SELECT * FROM graphql.aliases;');
+
 function distinct(value, index, self)
 {
   return self.indexOf(value) === index;
@@ -56,6 +58,7 @@ function viewTable(selection, tableName, result, where, level)
     + `table_name='${tableName}' AND column_name IN('${allFieldsFiltered.join("', '")}');`;
 
   //--plv8.elog(NOTICE, sysQuery);
+  var usedAliases = aliases.filter(a => allFieldsFiltered.includes(a.alias));
 
   var rows = plv8.execute(sysQuery);
 
@@ -151,9 +154,20 @@ function viewTable(selection, tableName, result, where, level)
 
   if (rows.length >= 0)
   {
-    //-- сначала (allFieldsFiltered) проверить, есть ли у таблицы такие поля. Если нет - пропустить это условие
-    var fields = rows.map(a => (a.column_name === 'CategoryFamilyId') ? `a${level}."FamilyId" AS "CategoryFamilyId"` : `a${level}."${a.column_name}"`);
-    //-- то же самое - JOIN, см. далее
+    var fields = (usedAliases.length > 0)
+	  ? rows.map(a => 
+	  {
+	    var alias = usedAliases.find(x => x.alias === a.column_name);
+	    return (alias !== undefined)
+		  ? `a${level}."${alias.column_name}" AS "${alias.alias}"`
+		  : `a${level}."${a.column_name}"`;
+	  })
+	  : rows.map(a => `a${level}."${a.column_name}"`);
+  
+    if (fields.length < 1)
+	{
+	  fields.push(`"${idField}"`);
+	}
   
     var query = `SELECT ${fields.join(", ")} FROM ${schema}."${tableName}" a${level} ${where}${sqlOperator}${qraphqlFilter}${orderBy}${limit};`;
 
@@ -213,8 +227,11 @@ function viewTable(selection, tableName, result, where, level)
             }
           }
 
-          //-- то же самое - JOIN, пример: FamilyVersion->CategoryFamily->FamilyDisciplines
-          var reverse_column_name = (fkReverseRow.column_name === 'CategoryFamilyId') ? 'FamilyId' : fkReverseRow.column_name;
+          var alias = aliases.find(x => x.alias === fkReverseRow.column_name);
+          var reverse_column_name = (alias !== undefined)
+		    ? alias.column_name
+			: fkReverseRow.column_name;
+			
           var innerWhere = 
              ` JOIN ${schema}."${tableName}" a${level} ON a${level}."${fkReverseRow.foreign_column_name}"=a${level + 1}."${reverse_column_name}" ${where}${sqlOperator}${qraphqlFilter0}`;
 

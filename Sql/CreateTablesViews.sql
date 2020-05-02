@@ -14,6 +14,13 @@ CREATE TABLE graphql.additional_foreign_keys
   PRIMARY KEY (column_name, foreign_table_name, foreign_column_name, table_name)
 );
 
+CREATE TABLE graphql.aliases
+(
+  column_name name NOT NULL,
+  alias name NOT NULL,
+  PRIMARY KEY (column_name, alias)
+);
+
 CREATE MATERIALIZED VIEW graphql.schema_columns AS 
  SELECT columns.column_name,
     columns.table_name
