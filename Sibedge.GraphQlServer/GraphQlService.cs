@@ -78,6 +78,7 @@
             ret.Add(this.CreateQuery(fieldInfoList));
             ret.AddRange(this.CreateTables(fieldInfoList, foreignKeyInfoList));
             ret.AddRange(this.CreateFilters(fieldInfoList));
+            ret.AddRange(this.CreateAggregates(fieldInfoList, foreignKeyInfoList));
 
             // Data types
             ret.Add(new Element
@@ -87,7 +88,7 @@
                 Kind = Kinds.Scalar
             });
 
-            foreach (var dataType in fieldInfoList.Select(x => x.DataType).Distinct())
+            foreach (var dataType in fieldInfoList.Select(x => x.DataType).Union(new[] {"integer"}).Distinct())
             {
                 ret.Add(new Element
                 {
@@ -212,6 +213,13 @@
                         }
                     }
                 });
+
+                ret.Fields.Add(new Field
+                {
+                    Name = tableName + _settings.AggPostfix,
+                    Type = new Type(Kinds.InputObject, tableName + _settings.AggPostfix),
+                    Args = new List<InputField>()
+                });
             }
 
             return ret;
@@ -297,7 +305,62 @@
                             }
                         }
                     });
+
+                    element.Fields.Add(new Field
+                    {
+                        Name = multipleLink.TableName + _settings.AggPostfix,
+                        Type = new Type(Kinds.InputObject, multipleLink.TableName + _settings.AggPostfix),
+                        Args = new List<InputField>()
+                    });
                 }
+
+                ret.Add(element);
+            }
+
+            return ret;
+        }
+
+        private List<Element> CreateAggregates(List<FieldInfo> fieldInfoList, List<ForeignKeyInfo> foreignKeyList)
+        {
+            var ret = new List<Element>();
+            var numericTypes = new[] { "integer", "bigint", "real", "double_precision" };
+
+            var tables = fieldInfoList.GroupBy(x => x.TableName);
+
+            foreach (var table in tables)
+            {
+                var element = new Element
+                {
+                    Name = table.Key + _settings.AggPostfix,
+                    Description = "Aggregate function for " + table.Key,
+                    Interfaces = new List<Type> { new Type(Kinds.Interface, "Node") },
+                    Kind = Kinds.Object,
+                    Fields = new List<Field>
+                    {
+                        new Field
+                        {
+                            Name = "count",
+                            Type = new Type(Kinds.Scalar, "integer")
+                        }
+                    }
+                };
+
+                /*
+                foreach (var column in table)
+                {
+                    var dataTypeName = column.ColumnName.ToLowerInvariant() == _settings.IdField.ToLowerInvariant()
+                        ? "Id"
+                        : column.DataType.ToTypeName();
+
+                    element.Fields.Add(new Field
+                    {
+                        Name = column.ColumnName,
+                        Type = column.IsNullable
+                            ? new Type(Kinds.Scalar, dataTypeName)
+                            : Type.CreateNonNull(Kinds.Scalar, dataTypeName)
+                    });
+                }
+                */
 
                 ret.Add(element);
             }
