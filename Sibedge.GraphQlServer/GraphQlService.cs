@@ -323,7 +323,15 @@
         private List<Element> CreateAggregates(List<FieldInfo> fieldInfoList, List<ForeignKeyInfo> foreignKeyList)
         {
             var ret = new List<Element>();
-            var numericTypes = new[] { "integer", "bigint", "real", "double_precision" };
+            var numericTypes = new[] { "integer", "bigint", "real", "double_precision", "numeric" };
+
+            var aggFunctions = new[] { "max", "min", "avg" };
+            if (_settings.AggPostfix[0] == '_')
+            {
+                aggFunctions = aggFunctions.Select(x => x + "_").ToArray();
+            }
+
+            var distinctStart = "distinct" + ((_settings.AggPostfix[0] == '_') ? "_" : string.Empty);
 
             var tables = fieldInfoList.GroupBy(x => x.TableName);
 
@@ -345,22 +353,33 @@
                     }
                 };
 
-                /*
                 foreach (var column in table)
                 {
-                    var dataTypeName = column.ColumnName.ToLowerInvariant() == _settings.IdField.ToLowerInvariant()
-                        ? "Id"
-                        : column.DataType.ToTypeName();
+                    if (column.ColumnName.ToLowerInvariant() == _settings.IdField.ToLowerInvariant())
+                    {
+                        continue;
+                    }
+
+                    var dataTypeName = column.DataType.ToTypeName();
 
                     element.Fields.Add(new Field
                     {
-                        Name = column.ColumnName,
-                        Type = column.IsNullable
-                            ? new Type(Kinds.Scalar, dataTypeName)
-                            : Type.CreateNonNull(Kinds.Scalar, dataTypeName)
+                        Name = distinctStart + column.ColumnName,
+                        Type = Type.CreateList(Kinds.Object, dataTypeName)
                     });
+
+                    if (numericTypes.Contains(dataTypeName))
+                    {
+                        foreach (var aggFunction in aggFunctions)
+                        {
+                            element.Fields.Add(new Field
+                            {
+                                Name = aggFunction + column.ColumnName,
+                                Type = new Type(Kinds.Scalar, "integer")
+                            });
+                        }
+                    }
                 }
-                */
 
                 ret.Add(element);
             }
