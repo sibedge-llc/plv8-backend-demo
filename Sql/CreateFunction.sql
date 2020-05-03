@@ -26,6 +26,13 @@ var operators =
 
 var idField = 'Id';
 var idPostfix = 'Id';
+var aggPostfix = 'Agg';
+
+var aggFunctions = ['max', 'min', 'avg'];
+var aggFuncPrefix = (aggPostfix[0] === '_') ? '_' : '';
+var aggDict = {};
+aggFunctions.map(x => aggDict[x + aggFuncPrefix] = `${x.toUpperCase()}($)`);
+aggDict['distinct' + aggFuncPrefix] = `array_agg(DISTINCT($))`;
 
 var aliases = plv8.execute('SELECT * FROM graphql.aliases;');
 
@@ -175,12 +182,10 @@ function viewTable(selection, tableName, result, where, level)
 
     items = plv8.execute(query);    
 
-    fkRows.filter(x => x.column_name.length > idPostfix.length).map(function(fkRow, index)    
+    fkRows.filter(x => x.column_name.length > idPostfix.length).map(fkRow =>
     {
-      //--plv8.elog(NOTICE, fkRow.column_name);
       table.selections.map(field =>
-      {
-        //--plv8.elog(NOTICE, 'field:' + field.name.value);
+      {        
         if (field.name.value.toLowerCase() === fkRow.column_name.substr(0, fkRow.column_name.length - idPostfix.length).toLowerCase())
         {
           var ids = items.map(a => a[fkRow.column_name]).filter(item => item !== null).filter(distinct);
@@ -200,12 +205,13 @@ function viewTable(selection, tableName, result, where, level)
           }
         }
       });
-    });    
+    });
 
-    var fkReverseRows = fkRowsAll.filter(function (item, pos)
+    var fkReverseRows = fkRowsAll.filter(item =>
     {
       return item.foreign_table_name === tableName
-             && tableKeys.includes(item.table_name);
+             && (tableKeys.includes(item.table_name)
+			  || tableKeys.includes(item.table_name + aggPostfix));
     });
 
     fkReverseRows.map(fkReverseRow =>
@@ -268,8 +274,40 @@ function viewTable(selection, tableName, result, where, level)
             });
           }
         
-          items.map(function(item, index) { item[field.name.value] = subResultOrdered[item[idField]]; });
+          items.map(item => { item[field.name.value] = subResultOrdered[item[idField]]; });
         }
+		else if (field.name.value.toLowerCase() === (fkReverseRow.table_name + aggPostfix).toLowerCase())
+		{
+		  var aggResult = {};
+          var aggWhere = 
+             ` JOIN ${schema}."${tableName}" a${level} ON a${level}."${fkReverseRow.foreign_column_name}"=a${level + 1}."${fkReverseRow.column_name}" ${where}${sqlOperator}${qraphqlFilter0}`;
+		  
+		  if (limit.length > 0)
+		  {
+		    sqlOperator = (where.length > 0) || (qraphqlFilter0.length > 0)
+			  ? ' AND' : ' WHERE';
+			var ids = items.map(a => a[idField]);
+			
+			aggWhere += ` ${sqlOperator} a${level}."${idField}" IN(${ids.join(', ')})`;
+		  }
+		  
+		  var aggResult = executeAgg(field, field.name.value, aggResult, aggWhere, level + 1, `a${level + 1}."${fkReverseRow.column_name}"`);
+		  var aggResultOrdered = {};
+		  
+		  aggResult.map(x =>
+          {		    
+		    aggResultOrdered[x[fkReverseRow.column_name]] = x;
+			delete x[fkReverseRow.column_name];
+          });
+		  
+		  items.map(item =>
+          {
+		    if (aggResultOrdered[item[idField]] !== undefined)
+		    {
+		      item[field.name.value] = aggResultOrdered[item[idField]]; 
+		    }
+		  });
+		}
       });
     });
   }
@@ -280,9 +318,52 @@ function viewTable(selection, tableName, result, where, level)
   }
 }
 
+function executeAgg(selection, tableName, result, where, level, aggColumn)
+{
+  var fields = {};
+  var keys = selection.selectionSet.selections.map(s =>
+  {
+    var x = s.name.value;
+    if (x === 'count')
+	{
+	  fields.count = 'COUNT(*)';
+	}
+	else
+	{
+	  Object.keys(aggDict).map(key =>
+	  {	    
+	    if (x.length > key.length && x.substr(0, key.length) === key)
+		{
+		  fields[x] = aggDict[key].replace('$', `a${level}."${x.substr(key.length)}"`);
+		}
+	  });
+	}
+  });
+  
+  var aggSelect = (aggColumn.length > 0) ? (aggColumn + ', ') : '';
+  var groupBy = (aggColumn.length > 0) ? ` GROUP BY ${aggColumn}` : '';
+  var fieldsSelect = Object.keys(fields).map(k => `${fields[k]} AS "${k}"`).join(', ');
+
+  var aggQuery = `SELECT ${aggSelect}${fieldsSelect} FROM ${schema}."${tableName.substr(0, tableName.length - aggPostfix.length)}" a${level}${where}${groupBy};`;
+  plv8.elog(NOTICE, aggQuery);
+          
+  return plv8.execute(aggQuery);
+}
+
 var result = {};
 
-gqlquery.definitions[0].selectionSet.selections.map(x => viewTable(x, x.name.value, result, '', 1));
+gqlquery.definitions[0].selectionSet.selections.map(x =>
+{
+  if (x.name.value.length > aggPostfix.length
+    && x.name.value.substr(x.name.value.length - aggPostfix.length) === aggPostfix)
+  {
+    result[x.name.value] = executeAgg(x, x.name.value, result, '', 1, '')[0];
+  }
+  else
+  {
+    viewTable(x, x.name.value, result, '', 1);
+  }
+}); 
 
 return { data: result };
 
