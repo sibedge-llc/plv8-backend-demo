@@ -1,6 +1,5 @@
 ﻿namespace Sibedge.GraphQlServer
 {
-    using System;
     using System.Collections.Generic;
     using System.Data;
     using System.Linq;
@@ -14,7 +13,7 @@
     /// <summary> GraphQL service </summary>
     public class GraphQlService
     {
-        private static string[] FilterOperators = new [] { "less", "greater", "equals", "contains" };
+        private static string[] FilterOperators = { "less", "greater", "lessOrEquals", "greaterOrEquals", "contains" };
         private IDbConnection _connection;
         private Settings _settings;
 
@@ -368,7 +367,7 @@
                         Type = Type.CreateList(Kinds.Object, dataTypeName)
                     });
 
-                    if (numericTypes.Contains(dataTypeName))
+                    if (!column.ColumnName.EndsWith(_settings.IdPostfix) && numericTypes.Contains(dataTypeName))
                     {
                         foreach (var aggFunction in aggFunctions)
                         {

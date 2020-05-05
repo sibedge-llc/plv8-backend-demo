@@ -20,7 +20,8 @@ var operators =
 {
   less: '<',
   greater: '>',
-  equals: '=',
+  lessOrEquals: '<=',
+  greaterOrEquals: '>=',
   contains: ' ILIKE '
 };
 
@@ -39,6 +40,52 @@ var aliases = plv8.execute('SELECT * FROM graphql.aliases;');
 function distinct(value, index, self)
 {
   return self.indexOf(value) === index;
+}
+
+String.prototype.trim = function()
+{
+  return this.replace(/^\s+|\s+$/g, "");
+};
+
+function getFilter(arguments, level)
+{
+  var qraphqlFilter = '';
+
+  var args = arguments.filter(x => x.name.value === 'filter');
+  if (args.length > 0)
+  {
+    var filter = args[0];
+      
+    var filterParts = filter.value.fields
+      .filter(x => x !== undefined)
+      .map(filterVal =>
+    {
+      if (filterVal.value.kind !== 'ObjectValue')
+      {
+        return (filterVal.value.kind === 'StringValue')
+          ? `a${level}."${filterVal.name.value}"='${filterVal.value.value}'`
+          : `a${level}."${filterVal.name.value}"=${filterVal.value.value}`;
+      }
+      else
+      {
+        var value1 = (filterVal.value.fields[0].value.kind === 'StringValue') 
+          ? (filterVal.value.fields[0].name.value === 'contains' 
+            ? `'%${filterVal.value.fields[0].value.value}%'`
+            : `'${filterVal.value.fields[0].value.value}'`)
+          : filterVal.value.fields[0].value.value;
+
+        var operator = operators[filterVal.value.fields[0].name.value];
+        return `a${level}."${filterVal.name.value}"${operator}${value1}`;
+      }
+    });
+	  
+    if (filterParts.length > 0)
+    {
+      qraphqlFilter = ' ' + filterParts.join(' AND ');
+    }
+  }
+  
+  return qraphqlFilter;
 }
 
 function viewTable(selection, tableName, result, where, level)
@@ -77,48 +124,15 @@ function viewTable(selection, tableName, result, where, level)
   var orderBy = '';
   var limit = '';
 
-  //-- grapghql filter  
+  //-- grapghql filters
   if (selection.arguments !== undefined)
   {
-    var args = selection.arguments.filter(x => x.name.value === 'filter');
-    if (args.length > 0)
+    qraphqlFilter = getFilter(selection.arguments, level);
+    if (level === 1)
     {
-      var filter = args[0];
-      
-	  var filterParts = filter.value.fields
-	      .filter(x => x !== undefined)
-		  .map(filterVal =>
-      {
-        if (filterVal.value.kind !== 'ObjectValue')
-        {
-          return (filterVal.value.kind === 'StringValue')
-		    ? `a${level}."${filterVal.name.value}"='${filterVal.value.value}'`
-		    : `a${level}."${filterVal.name.value}"=${filterVal.value.value}`;
-        }
-        else
-        {
-		  var value1 = (filterVal.value.fields[0].value.kind === 'StringValue') 
-		    ? (filterVal.value.fields[0].name.value === 'contains' 
-                 ? `'%${filterVal.value.fields[0].value.value}%'`
-				 : `'${filterVal.value.fields[0].value.value}'`)
-			: filterVal.value.fields[0].value.value;
-			
-          var operator = operators[filterVal.value.fields[0].name.value];
-          return `a${level}."${filterVal.name.value}"${operator}${value1}`;
-        }
-      });
-	  
-	  if (filterParts.length > 0)
-	  {
-	    qraphqlFilter = ' ' + filterParts.join(' AND ');
-		
-        if (level === 1)
-        {
-          qraphqlFilter0 = qraphqlFilter;
-        }
-      }
+      qraphqlFilter0 = qraphqlFilter;
     }
-	
+
 	var idFilterArgs = selection.arguments.filter(x => x.name.value === 'id');
 	if (level === 1 && idFilterArgs.length > 0)
     {
@@ -153,6 +167,7 @@ function viewTable(selection, tableName, result, where, level)
 	}
   }
 
+  // --------------- Main part -----------------
   var sqlOperator = '';
   if (qraphqlFilter.length > 0)
   {
@@ -171,7 +186,18 @@ function viewTable(selection, tableName, result, where, level)
 	  })
 	  : rows.map(a => `a${level}."${a.column_name}"`);
   
-    if (fields.length < 1)
+    var aggExist = false;
+  
+    var fkReverseRows = fkRowsAll.filter(item =>
+    {
+	  var isAggField = tableKeys.includes(item.table_name + aggPostfix);
+	  aggExist = aggExist || isAggField;
+	
+      return item.foreign_table_name === tableName
+             && (tableKeys.includes(item.table_name) || isAggField);
+    });  
+  
+    if (fields.length < 1 || aggExist)
 	{
 	  fields.push(`"${idField}"`);
 	}
@@ -207,13 +233,6 @@ function viewTable(selection, tableName, result, where, level)
       });
     });
 
-    var fkReverseRows = fkRowsAll.filter(item =>
-    {
-      return item.foreign_table_name === tableName
-             && (tableKeys.includes(item.table_name)
-			  || tableKeys.includes(item.table_name + aggPostfix));
-    });
-
     fkReverseRows.map(fkReverseRow =>
     {
       table.selections.map(field =>
@@ -227,9 +246,9 @@ function viewTable(selection, tableName, result, where, level)
           if (level === 1 && qraphqlFilter0.length > 0)
           {
             sqlOperator = (where.length > 0) ? ' AND' : ' WHERE';
-            if (!qraphqlFilter0.startsWith('a1.'))
+            if (!qraphqlFilter0.trim().startsWith('a1.'))
             {
-              qraphqlFilter0 = `a1.${qraphqlFilter0}`;
+              qraphqlFilter0 = ` a1.${qraphqlFilter0}`;
             }
           }
 
@@ -344,7 +363,17 @@ function executeAgg(selection, tableName, result, where, level, aggColumn)
   var groupBy = (aggColumn.length > 0) ? ` GROUP BY ${aggColumn}` : '';
   var fieldsSelect = Object.keys(fields).map(k => `${fields[k]} AS "${k}"`).join(', ');
 
-  var aggQuery = `SELECT ${aggSelect}${fieldsSelect} FROM ${schema}."${tableName.substr(0, tableName.length - aggPostfix.length)}" a${level}${where}${groupBy};`;
+  var qraphqlFilter = (selection.arguments !== undefined)
+    ? getFilter(selection.arguments, level)
+	: '';
+
+  var sqlOperator = '';
+  if (qraphqlFilter.length > 0)
+  {
+    sqlOperator = (where.length > 0) ? ' AND' : ' WHERE';
+  }
+
+  var aggQuery = `SELECT ${aggSelect}${fieldsSelect} FROM ${schema}."${tableName.substr(0, tableName.length - aggPostfix.length)}" a${level}${where}${sqlOperator}${qraphqlFilter}${groupBy};`;
   plv8.elog(NOTICE, aggQuery);
           
   return plv8.execute(aggQuery);
