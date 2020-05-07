@@ -337,7 +337,8 @@ function viewTable(selection, tableName, result, where, level)
             defaultAgg.count = 0;
           }
 
-          fields.filter(x => x.substr(0, 'distinct'.length)).map(x => defaultAgg[x] = []);
+          fields.filter(x => x.length > 'distinct'.length && x.substr(0, 'distinct'.length) === 'distinct')
+              .map(x => defaultAgg[x] = []);
 
           items.map(item =>
           {
