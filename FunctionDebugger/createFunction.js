@@ -1,11 +1,15 @@
+/*SQL
+CREATE OR REPLACE FUNCTION graphql.execute(query text, schema text)
+RETURNS JSONB
+SQL*/
+
 const NOTICE = 'NOTICE';
 
 var plv8 = require ("./helper.js");
 var query = plv8.query;
 var schema = plv8.schema;
 
-/* BEGIN */
-
+/*BEGIN*/
 var gqlquery = {};
 
 !function(e){var t={};function n(i){if(t[i])return t[i].exports;var r=t[i]={i:i,l:!1,exports:{}};return e[i].call(r.exports,r,r.exports,n),r.l=!0,r.exports}n.m=e,n.c=t,n.d=function(e,t,i){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:i})},n.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},n.t=function(e,t){if(1&t&&(e=n(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var i=Object.create(null);if(n.r(i),Object.defineProperty(i,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var r in e)n.d(i,r,function(t){return e[t]}.bind(null,r));return i},n.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return n.d(t,"a",t),t},n.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},n.p="",n(n.s=1)}([function(e,t,n){var i=n(2).parse;function r(e){return e.replace(/[\s,]+/g," ").trim()}var a={},s={};var o=!0;var c=!1;function u(e){var t=r(e);if(a[t])return a[t];var n=i(e,{experimentalFragmentVariables:c});if(!n||"Document"!==n.kind)throw new Error("Not a valid GraphQL document.");return n=function e(t,n){var i=Object.prototype.toString.call(t);if("[object Array]"===i)return t.map((function(t){return e(t,n)}));if("[object Object]"!==i)throw new Error("Unexpected input.");n&&t.loc&&delete t.loc,t.loc&&(delete t.loc.startToken,delete t.loc.endToken);var r,a,s,o=Object.keys(t);for(r in o)o.hasOwnProperty(r)&&(a=t[o[r]],"[object Object]"!==(s=Object.prototype.toString.call(a))&&"[object Array]"!==s||(t[o[r]]=e(a,!0)));return t}(n=function(e){for(var t,n={},i=[],a=0;a<e.definitions.length;a++){var c=e.definitions[a];if("FragmentDefinition"===c.kind){var u=c.name.value,l=r((t=c.loc).source.body.substring(t.start,t.end));s.hasOwnProperty(u)&&!s[u][l]?(o&&console.warn("Warning: fragment with name "+u+" already exists.\ngraphql-tag enforces all fragment names across your application to be unique; read more about\nthis in the docs: http://dev.apollodata.com/core/fragments.html#unique-names"),s[u][l]=!0):s.hasOwnProperty(u)||(s[u]={},s[u][l]=!0),n[l]||(n[l]=!0,i.push(c))}else i.push(c)}return e.definitions=i,e}(n),!1),a[t]=n,n}function l(){for(var e=Array.prototype.slice.call(arguments),t=e[0],n="string"==typeof t?t:t[0],i=1;i<e.length;i++)e[i]&&e[i].kind&&"Document"===e[i].kind?n+=e[i].loc.source.body:n+=e[i],n+=t[i];return u(n)}l.default=l,l.resetCaches=function(){a={},s={}},l.disableFragmentWarnings=function(){o=!1},l.enableExperimentalFragmentVariables=function(){c=!0},l.disableExperimentalFragmentVariables=function(){c=!1},e.exports=l},

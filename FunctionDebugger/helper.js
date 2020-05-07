@@ -1,10 +1,15 @@
 exports.query = ` query {
-    Families {
+    CategoryFamilies (take: 10) {
         Id
+        CurrentVersion {
+            Id
+            Version
+        }
     }
 }
 `;
-exports.schema = '';
+
+exports.schema = 'public';
 
 exports.elog = function(type, message)
 {
@@ -13,6 +18,12 @@ exports.elog = function(type, message)
 
 exports.execute = function(query)
 {
-    return [];
-}
+    var Client = require('pg-native');
+    var client = new Client();
+    
+    client.connectSync('postgresql://fm:1q2w3e$R@192.168.33.140:5432/FmStage');
+    var ret = client.querySync(query);
+    client.end();
 
+    return ret;
+}

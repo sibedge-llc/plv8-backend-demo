@@ -2,6 +2,7 @@ bin/
 obj/
 temp/
 packages/
+node_modules/
 .vs/
 *.suo
 *.ncb
@@ -9,3 +10,4 @@ packages/
 *.svcinfo
 *.xsd
 *.wsdl
+package-lock.json
