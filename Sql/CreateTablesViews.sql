@@ -1,3 +1,5 @@
+CREATE SCHEMA graphql;
+
 CREATE TABLE graphql.additional_columns
 (
   column_name name NOT NULL,
