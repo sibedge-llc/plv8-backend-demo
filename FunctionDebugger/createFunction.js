@@ -225,6 +225,11 @@ function viewTable(selection, tableName, result, where, level)
           var ids = items.map(a => a[fkRow.column_name]).filter(item => item !== null).filter(distinct);
           if (ids.length > 0)
           {
+            if (typeof ids[0] === 'string')
+            {
+              ids = ids.map(x => `'${x}'`);
+            }
+
             var subResult = {};
             var subResultOrdered = {};
 
@@ -275,6 +280,11 @@ function viewTable(selection, tableName, result, where, level)
               ? ' AND' : ' WHERE';
             var ids = items.map(a => a[idField]);
 
+            if (typeof ids[0] === 'string')
+            {
+              ids = ids.map(x => `'${x}'`);
+            }
+
             innerWhere += ` ${sqlOperator} a${level}."${idField}" IN(${ids.join(', ')})`;
           }
 
@@ -317,6 +327,11 @@ function viewTable(selection, tableName, result, where, level)
             sqlOperator = (where.length > 0) || (qraphqlFilter0.length > 0)
               ? ' AND' : ' WHERE';
             var ids = items.map(a => a[idField]);
+
+            if (typeof ids[0] === 'string')
+            {
+              ids = ids.map(x => `'${x}'`);
+            }
 
             aggWhere += ` ${sqlOperator} a${level}."${idField}" IN(${ids.join(', ')})`;
           }
