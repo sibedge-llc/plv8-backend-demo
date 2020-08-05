@@ -1,16 +1,7 @@
 exports.query = ` query {
-    Contractors {
+    Families {
         Id
         Name
-        Comment
-        EventsAgg {
-          count
-          distinctName
-        }
-      }
-      EventsAgg {
-         count
-         distinctName
       }
   }
 `;
@@ -27,7 +18,7 @@ exports.execute = function(query)
     var Client = require('pg-native');
     var client = new Client();
     
-    client.connectSync('postgresql://dev:R7i{Rht*POeSkdh@192.168.33.140:5432/hcapital');
+    client.connectSync('postgresql://alexey:1@localhost:5432/fm');
     var ret = client.querySync(query);
     client.end();
 

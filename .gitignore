@@ -3,6 +3,7 @@ obj/
 temp/
 packages/
 node_modules/
+.idea/
 .vs/
 *.suo
 *.ncb

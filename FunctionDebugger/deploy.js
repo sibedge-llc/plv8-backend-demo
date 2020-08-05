@@ -12,13 +12,19 @@ fs.readFile('./createFunction.js', 'utf8', function(err, data)
     var scriptHeader = header.substr(header.indexOf(sqlOpenMark) + sqlOpenMark.length);
     scriptHeader = scriptHeader.substr(0, scriptHeader.indexOf(sqlCloseMark)) + "AS $$";
 
-    var scriptBody = data.substr(data.indexOf(beginMark) + beginMark.length)
-        .replace("exports.ret =", "return");
+    fs.readFile('./api.js', 'utf8', function(err, apiData)
+    {
+        var scriptApi = apiData.replace("exports.", "api.");
 
-    var script = `${scriptHeader}
+        var scriptBody = data.substr(data.indexOf(beginMark) + beginMark.length)
+            .replace("exports.ret =", "return");
+
+        var script = `${scriptHeader}
+${scriptApi}
 ${scriptBody}
 $$ LANGUAGE plv8;`;
 
-    var result = db.execute(script);
-    console.log(result);
+        var result = db.execute(script);
+        console.log(result);
+    });
 });
