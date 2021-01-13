@@ -1,4 +1,4 @@
-﻿namespace Sibedge.GraphQlServer
+﻿namespace Sibedge.Plv8Server
 {
     public class Settings
     {

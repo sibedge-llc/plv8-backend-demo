@@ -1,6 +1,6 @@
-﻿namespace Sibedge.GraphQlServer
+﻿namespace Sibedge.Plv8Server.Helpers
 {
-    public static class Helper
+    public static class GraphQlHelper
     {
         public static string ToTypeName(this string str)
         {

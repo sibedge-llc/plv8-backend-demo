@@ -1,4 +1,4 @@
-﻿namespace Sibedge.GraphQlServer.Models.Introspection
+﻿namespace Sibedge.Plv8Server.Models.Introspection
 {
     using System.Collections.Generic;
     using Newtonsoft.Json;

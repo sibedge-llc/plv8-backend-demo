@@ -1,4 +1,4 @@
-﻿namespace Sibedge.GraphQlServer.Models
+﻿namespace Sibedge.Plv8Server.Models
 {
     /// <summary> Information about DB foreign keys </summary>
     public class ForeignKeyInfo

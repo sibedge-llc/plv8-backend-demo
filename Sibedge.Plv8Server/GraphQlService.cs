@@ -1,10 +1,11 @@
-﻿namespace Sibedge.GraphQlServer
+﻿namespace Sibedge.Plv8Server
 {
     using System.Collections.Generic;
     using System.Data;
     using System.Linq;
     using System.Threading.Tasks;
     using Dapper;
+    using Helpers;
     using Models;
     using Models.Introspection;
     using Newtonsoft.Json;
@@ -46,8 +47,8 @@
             }
             else
             {
-                var sql = $"SELECT graphql.execute('{query.Query}', '{_settings.Schema}');";
-                json = (await _connection.QueryAsync<string>(sql)).First();
+                var sql = $"SELECT graphql.execute('{query.Query}', '{this._settings.Schema}');";
+                json = await _connection.QueryFirstAsync<string>(sql);
             }
 
             return json;
@@ -122,9 +123,9 @@
             var sql = $@"SELECT gc.table_name AS ""TableName"", gc.column_name AS ""ColumnName"",
                           ic.data_type AS ""DataType"", ic.is_nullable='YES' AS ""IsNullable"" FROM graphql.schema_columns gc
                         LEFT JOIN information_schema.columns ic ON gc.table_name=ic.table_name AND gc.column_name=ic.column_name
-                          WHERE ic.table_schema::name = '{_settings.Schema}'::name;";
+                          WHERE ic.table_schema::name = '{this._settings.Schema}'::name;";
 
-            return _connection.QueryAsync<FieldInfo>(sql);
+            return this._connection.QueryAsync<FieldInfo>(sql);
         }
 
         private Task<IEnumerable<ForeignKeyInfo>> GetForeignKeyInfo()
@@ -133,7 +134,7 @@
                           foreign_table_name AS ""ForeignTableName"", foreign_column_name AS ""ForeignColumnName""
                         FROM graphql.schema_foreign_keys";
 
-            return _connection.QueryAsync<ForeignKeyInfo>(sql);
+            return this._connection.QueryAsync<ForeignKeyInfo>(sql);
         }
 
         private Element CreateNode(List<FieldInfo> fieldInfoList)
@@ -215,8 +216,8 @@
 
                 ret.Fields.Add(new Field
                 {
-                    Name = tableName + _settings.AggPostfix,
-                    Type = new Type(Kinds.InputObject, tableName + _settings.AggPostfix),
+                    Name = tableName + this._settings.AggPostfix,
+                    Type = new Type(Kinds.InputObject, tableName + this._settings.AggPostfix),
                     Args = new List<InputField>()
                 });
             }
@@ -243,7 +244,7 @@
 
                 foreach (var column in table)
                 {
-                    var dataTypeName = column.ColumnName.ToLowerInvariant() == _settings.IdField.ToLowerInvariant()
+                    var dataTypeName = column.ColumnName.ToLowerInvariant() == this._settings.IdField.ToLowerInvariant()
                         ? "Id"
                         : column.DataType.ToTypeName();
 
@@ -261,8 +262,8 @@
                 {
                     element.Fields.Add(new Field
                     {
-                        Name = singleLink.ColumnName.EndsWith(_settings.IdPostfix)
-                            ? singleLink.ColumnName.Substring(0, singleLink.ColumnName.Length - _settings.IdPostfix.Length)
+                        Name = singleLink.ColumnName.EndsWith(this._settings.IdPostfix)
+                            ? singleLink.ColumnName.Substring(0, singleLink.ColumnName.Length - this._settings.IdPostfix.Length)
                             : singleLink.ColumnName,
                         Type = new Type(Kinds.Object, singleLink.ForeignTableName)
                     });
@@ -307,8 +308,8 @@
 
                     element.Fields.Add(new Field
                     {
-                        Name = multipleLink.TableName + _settings.AggPostfix,
-                        Type = new Type(Kinds.InputObject, multipleLink.TableName + _settings.AggPostfix),
+                        Name = multipleLink.TableName + this._settings.AggPostfix,
+                        Type = new Type(Kinds.InputObject, multipleLink.TableName + this._settings.AggPostfix),
                         Args = new List<InputField>()
                     });
                 }
@@ -325,12 +326,12 @@
             var numericTypes = new[] { "integer", "bigint", "real", "double_precision", "numeric" };
 
             var aggFunctions = new[] { "max", "min", "avg" };
-            if (_settings.AggPostfix[0] == '_')
+            if (this._settings.AggPostfix[0] == '_')
             {
                 aggFunctions = aggFunctions.Select(x => x + "_").ToArray();
             }
 
-            var distinctStart = "distinct" + ((_settings.AggPostfix[0] == '_') ? "_" : string.Empty);
+            var distinctStart = "distinct" + ((this._settings.AggPostfix[0] == '_') ? "_" : string.Empty);
 
             var tables = fieldInfoList.GroupBy(x => x.TableName);
 
@@ -338,7 +339,7 @@
             {
                 var element = new Element
                 {
-                    Name = table.Key + _settings.AggPostfix,
+                    Name = table.Key + this._settings.AggPostfix,
                     Description = "Aggregate function for " + table.Key,
                     Interfaces = new List<Type> { new Type(Kinds.Interface, "Node") },
                     Kind = Kinds.Object,
@@ -354,7 +355,7 @@
 
                 foreach (var column in table)
                 {
-                    if (column.ColumnName.ToLowerInvariant() == _settings.IdField.ToLowerInvariant())
+                    if (column.ColumnName.ToLowerInvariant() == this._settings.IdField.ToLowerInvariant())
                     {
                         continue;
                     }
@@ -367,7 +368,7 @@
                         Type = Type.CreateList(Kinds.Object, dataTypeName)
                     });
 
-                    if (!column.ColumnName.EndsWith(_settings.IdPostfix) && numericTypes.Contains(dataTypeName))
+                    if (!column.ColumnName.EndsWith(this._settings.IdPostfix) && numericTypes.Contains(dataTypeName))
                     {
                         foreach (var aggFunction in aggFunctions)
                         {

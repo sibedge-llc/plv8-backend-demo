@@ -1,4 +1,4 @@
-﻿namespace Sibedge.GraphQlServer.Models.Introspection
+﻿namespace Sibedge.Plv8Server.Models.Introspection
 {
     /// <summary> Kinds </summary>
     public static class Kinds

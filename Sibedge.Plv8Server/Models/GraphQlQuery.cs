@@ -1,4 +1,4 @@
-﻿namespace Sibedge.GraphQlServer.Models
+﻿namespace Sibedge.Plv8Server.Models
 {
     using System.Collections.Generic;
 
