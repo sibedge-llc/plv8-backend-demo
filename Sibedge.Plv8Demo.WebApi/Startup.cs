@@ -33,7 +33,7 @@ namespace Sibedge.Plv8Demo.WebApi
 
             services.AddTransient<GraphQlService>();
             services.AddTransient<V8FuncService>();
-            services.AddTransient<InsertService>();
+            services.AddTransient<ChangeService>();
 
             services.Configure<Settings>(options => this.Configuration.GetSection(nameof(Settings)).Bind(options));
 
