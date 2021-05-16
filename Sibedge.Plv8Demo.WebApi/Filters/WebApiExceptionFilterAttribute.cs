@@ -6,7 +6,7 @@
     using Microsoft.AspNetCore.Mvc.Filters;
 
     /// <summary> Exception Filter Attribute </summary>
-    public class WebApiExceptionFilterAttribute : ExceptionFilterAttribute
+    public sealed class WebApiExceptionFilterAttribute : ExceptionFilterAttribute
     {
         /// <summary> On exception </summary>
         /// <param name="context"> Context </param>
