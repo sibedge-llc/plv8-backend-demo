@@ -25,11 +25,11 @@
 
             context.HttpContext.Response.StatusCode = statusCode;
 
-            context.Result = new JsonResult(new 
+            context.Result = new JsonResult(new
                              {
                                  title = context.Exception.Message,
                                  status = statusCode,
-                                 exception = context.Exception.GetType()
+                                 exception = context.Exception.GetType(),
                              });
         }
     }

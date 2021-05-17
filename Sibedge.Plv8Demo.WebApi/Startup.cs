@@ -1,10 +1,9 @@
-namespace Sibedge.Plv8Demo.WebApi
+﻿namespace Sibedge.Plv8Demo.WebApi
 {
     using System.Data;
     using Filters;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;

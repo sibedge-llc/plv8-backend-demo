@@ -11,14 +11,15 @@
     [Route("[controller]")]
     public class GraphQlController : ControllerBase
     {
-        private readonly GraphQlService _service;
+        private readonly GraphQlService service;
 
         /// <inheritdoc />
         public GraphQlController(GraphQlService service)
         {
-            this._service = service;
+            this.service = service;
         }
 
+        /// <summary> Stub GET method </summary>
         [HttpGet]
         public IActionResult Get()
         {
@@ -28,9 +29,9 @@
         /// <summary> Execute graphQL query </summary>
         /// <param name="query"> Query data </param>
         [HttpPost]
-        public ValueTask<IActionResult> Query([FromBody]GraphQlQuery query)
+        public ValueTask<IActionResult> Query([FromBody] GraphQlQuery query)
         {
-            return this._service.PerformQuery(query).GetFuncData(this);
+            return this.service.PerformQuery(query).GetFuncData(this);
         }
     }
 }

@@ -7,7 +7,8 @@
     public class V8FuncService : V8FuncServiceBase
     {
         /// <summary> ctor </summary>
-        public V8FuncService(IDbConnection connection) : base(connection)
+        public V8FuncService(IDbConnection connection)
+            : base(connection)
         {
         }
     }

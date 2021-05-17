@@ -1,7 +1,5 @@
 ﻿namespace Sibedge.Plv8Demo.WebApi.Controllers
 {
-    using System;
-    using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
     using Services;
 
@@ -10,12 +8,12 @@
     [Route("[controller]")]
     public class FuncController : ControllerBase
     {
-        private readonly V8FuncService _service;
+        private readonly V8FuncService service;
 
         /// <inheritdoc />
         public FuncController(V8FuncService service)
         {
-            this._service = service;
+            this.service = service;
         }
     }
 }
