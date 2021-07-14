@@ -1,6 +1,7 @@
 ﻿namespace Sibedge.Plv8Demo.WebApi
 {
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Hosting;
 
     /// <summary> Wep application program </summary>
@@ -19,6 +20,10 @@
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
+                })
+                .ConfigureHostConfiguration(builder =>
+                {
+                    builder.AddEnvironmentVariables(prefix: "DEMOAIRLINESDB_");
                 });
         }
     }

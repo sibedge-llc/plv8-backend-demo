@@ -21,20 +21,6 @@ volumes:
   db-data-dump:
 
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    environment:
-      MODULE_NAME: ${MODULE_NAME}
-      DLL_NAME: ${DLL_NAME}
-    depends_on: 
-      - node_scripts
-      - database
-    ports:
-      - "$APP_PORT:80"
-    restart: unless-stopped
-
   database:
     build:
       context: ./db/postgresql
@@ -82,4 +68,27 @@ services:
         condition: service_healthy
     networks:
       - backend
+    <<: *logging-rules
+
+  aspnet:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aspnet
+    env_file:
+      - .env
+    environment:
+      MODULE_NAME: ${MODULE_NAME}
+      DLL_NAME: ${MODULE_NAME}.dll
+      DEMOAIRLINESDB_ConnectionStrings__Default: Host=$POSTGRES_HOST;User ID=$PLV8_POSTGRES_USER;Password=$PLV8_POSTGRES_PASSWORD;Port=5432;Database=$DB_NAME;Pooling=true;
+    ports:
+      - "$ASPNET_PORT:80"
+    depends_on: 
+      database:
+        condition: service_started
+      node_scripts:
+        condition: service_completed_successfully
+    networks:
+      - backend
+    restart: unless-stopped
     <<: *logging-rules
