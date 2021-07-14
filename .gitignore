@@ -12,3 +12,4 @@ node_modules/
 *.xsd
 *.wsdl
 package-lock.json
+/db/node/dump/
