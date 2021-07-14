@@ -2,7 +2,7 @@
 WORKDIR /usr/deploy
 RUN buildDependencies="ca-certificates make git build-essential python3 libpq-dev postgresql-client" \
   && apt-get update && apt-get install -y --no-install-recommends ${buildDependencies} \
-  && git clone https://github.com/alexeyfadeev/plv8-framework.git
+  && git clone https://github.com/sibedge-llc/plv8-framework.git
 RUN cd plv8-framework/Plv8 \
   && npm install -g node-gyp \
   && npm install -g npm \

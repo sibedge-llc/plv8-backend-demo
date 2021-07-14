@@ -3,7 +3,7 @@
 RUN buildDependencies="ca-certificates make git" \
   && apt-get update && apt-get install -y --no-install-recommends ${buildDependencies}
 WORKDIR /usr/build
-RUN git clone https://github.com/alexeyfadeev/plv8-build.git
+RUN git clone https://github.com/sibedge-llc/plv8-build.git
 RUN apt-get clean \
   && apt-get remove -y ${buildDependencies} \
   && apt-get autoremove -y \

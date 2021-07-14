@@ -4,3 +4,7 @@ Expand-Archive -Path $tmp -DestinationPath .\db\node\dump -Force
 $tmp | Remove-Item
 
 git submodule update --init
+
+docker-compose build
+
+docker-compose up -d
