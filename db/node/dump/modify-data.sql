@@ -12,7 +12,7 @@ CREATE VIEW public.passengers AS
 
 INSERT INTO graphql.additional_foreign_keys(
             column_name, foreign_table_name, foreign_column_name, table_name)
-    VALUES ('passenger_id', 'passengers', 'id', 'flights');
+    VALUES ('passenger_id', 'passengers', 'id', 'tickets');
 
 REFRESH MATERIALIZED VIEW graphql.schema_foreign_keys;
 REFRESH MATERIALIZED VIEW graphql.schema_columns;

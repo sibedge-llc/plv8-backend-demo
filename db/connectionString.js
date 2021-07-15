@@ -1,0 +1,1 @@
+exports.connectionString = 'postgresql://demouser:qwerty@localhost:5437/airlines';

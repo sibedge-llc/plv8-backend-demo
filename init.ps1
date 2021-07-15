@@ -5,6 +5,8 @@ $tmp | Remove-Item
 
 git submodule update --init
 
+Copy-Item "./db/connectionString.js" -Destination "./Plv8/Plv8/config"
+
 docker-compose build
 
 docker-compose up -d
