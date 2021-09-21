@@ -9,7 +9,7 @@ RUN apt-get clean \
   && apt-get autoremove -y \
   && rm -rf /var/lib/apt/lists/*
 
-FROM postgres:13.2
+FROM postgres:13.4
 ENV PG_MAJOR_VERSION=13
 ENV POSTGRES_USER=${POSTGRES_USER}
 ENV POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
