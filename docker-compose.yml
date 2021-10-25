@@ -22,9 +22,7 @@ volumes:
 
 services:
   database:
-    build:
-      context: ./db/postgresql
-      dockerfile: Dockerfile
+    image: "sibedge/postgres-plv8:13.4-3.0.0"
     env_file:
       - .env
     environment:
