@@ -31,7 +31,7 @@
         [HttpPost]
         public ValueTask<IActionResult> Query([FromBody] GraphQlQuery query)
         {
-            return this.service.PerformQuery(query).GetFuncData(this);
+            return this.service.PerformQuery(query, null).GetFuncData(this);
         }
     }
 }

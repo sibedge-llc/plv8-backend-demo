@@ -34,7 +34,9 @@
             services.AddTransient<V8FuncService>();
             services.AddTransient<ChangeService>();
 
-            services.Configure<Settings>(options => this.Configuration.GetSection(nameof(Settings)).Bind(options));
+            services.Configure<Plv8Settings>(options => this.Configuration.GetSection(nameof(Plv8Settings)).Bind(options));
+
+            services.AddMemoryCache();
 
             services.AddMvc(options =>
                 {
