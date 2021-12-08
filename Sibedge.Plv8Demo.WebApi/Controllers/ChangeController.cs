@@ -33,7 +33,7 @@
         {
             var data = JsonSerializer.Serialize(body);
 
-            return this.service.Change(tableName, data, idKeys, ChangeOperation.Insert)
+            return this.service.Change(tableName, data, idKeys, ChangeOperation.Insert, null)
                 .GetFuncData(this);
         }
 
@@ -49,7 +49,7 @@
         {
             var data = JsonSerializer.Serialize(body);
 
-            return this.service.Change(tableName, data, idKeys, ChangeOperation.Update)
+            return this.service.Change(tableName, data, idKeys, ChangeOperation.Update, null)
                 .GetFuncData(this);
         }
 
@@ -65,7 +65,7 @@
         {
             var data = JsonSerializer.Serialize(body);
 
-            return this.service.Change(tableName, data, idKeys, ChangeOperation.Delete)
+            return this.service.Change(tableName, data, idKeys, ChangeOperation.Delete, null)
                 .GetFuncData(this);
         }
     }
