@@ -1,20 +1,17 @@
-﻿FROM amd64/debian:buster-slim AS installer
+﻿FROM postgres:13.4 AS installer
 
-RUN buildDependencies="ca-certificates make git" \
+RUN buildDependencies="ca-certificates make git postgresql-server-dev-13 bison build-essential flex" \
   && apt-get update && apt-get install -y --no-install-recommends ${buildDependencies}
-WORKDIR /usr/build
-RUN git clone https://github.com/sibedge-llc/plv8-build.git
-RUN apt-get clean \
-  && apt-get remove -y ${buildDependencies} \
-  && apt-get autoremove -y \
-  && rm -rf /var/lib/apt/lists/*
 
-FROM postgres:13.4
+WORKDIR /usr/build
+RUN git clone https://github.com/postgrespro/jsquery.git
+RUN cd jsquery && make USE_PGXS=1 && make USE_PGXS=1 install
+
+
+FROM sibedge/postgres-plv8:13.4-3.0.0
+
 ENV PG_MAJOR_VERSION=13
-ENV POSTGRES_USER=${POSTGRES_USER}
-ENV POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-RUN runtimeDependencies="libc++1" \
-  && apt-get update \
-  && apt-get install -y --no-install-recommends ${runtimeDependencies}
-COPY --from=installer /usr/build/plv8-build/pkglibdir /usr/lib/postgresql/${PG_MAJOR_VERSION}/lib
-COPY --from=installer /usr/build/plv8-build/extension /usr/share/postgresql/${PG_MAJOR_VERSION}/extension
+COPY --from=installer /usr/lib/postgresql/${PG_MAJOR_VERSION}/lib/jsquery.so /usr/lib/postgresql/${PG_MAJOR_VERSION}/lib
+COPY --from=installer /usr/share/postgresql/${PG_MAJOR_VERSION}/extension/jsquery--1.0--1.1.sql /usr/share/postgresql/${PG_MAJOR_VERSION}/extension
+COPY --from=installer /usr/share/postgresql/${PG_MAJOR_VERSION}/extension/jsquery--1.1.sql /usr/share/postgresql/${PG_MAJOR_VERSION}/extension
+COPY --from=installer /usr/share/postgresql/${PG_MAJOR_VERSION}/extension/jsquery.control /usr/share/postgresql/${PG_MAJOR_VERSION}/extension
