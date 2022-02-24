@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Sibedge.Plv8Demo.Services\Sibedge.Plv8Demo.Services.csproj" />
-    <ProjectReference Include="..\Sibedge.Plv8Server\Sibedge.Plv8Server.csproj" />
+    <ProjectReference Include="..\Sibedge.Plv8Server\Sibedge.Plv8Server\Sibedge.Plv8Server.csproj" />
   </ItemGroup>
 
 </Project>

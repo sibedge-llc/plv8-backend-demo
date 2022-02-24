@@ -1,4 +1,4 @@
-﻿FROM node:12.22.1-buster-slim
+﻿FROM node:14-buster-slim
 WORKDIR /usr/deploy
 RUN buildDependencies="ca-certificates make git build-essential python3 libpq-dev postgresql-client" \
   && apt-get update && apt-get install -y --no-install-recommends ${buildDependencies} \
