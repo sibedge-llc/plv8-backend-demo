@@ -1,4 +1,4 @@
-wget http://graphql.alexfadeev.net/scripts/demo-medium-20170815.zip
+wget http://passgen.alexfadeev.ml/scripts/demo-medium-20170815.zip
 
 unzip ./demo-medium-20170815.zip -d ./db/node/dump
 
