@@ -1,12 +1,6 @@
-﻿FROM node:14-buster-slim
+﻿FROM sibedge/plv8-framework-deploy
 WORKDIR /usr/deploy
-RUN buildDependencies="ca-certificates make git build-essential python3 libpq-dev postgresql-client" \
-  && apt-get update && apt-get install -y --no-install-recommends ${buildDependencies} \
-  && git clone https://github.com/sibedge-llc/plv8-framework.git
-RUN cd plv8-framework/Plv8 \
-  && npm install -g node-gyp \
-  && npm install -g npm \
-  && npm install
+
 ADD dump/${DUMP_FILE} ./plv8-framework/Sql
 ADD dump/modify-data.sql ./plv8-framework/Sql
 ADD dump/audit.sql ./plv8-framework/Sql
