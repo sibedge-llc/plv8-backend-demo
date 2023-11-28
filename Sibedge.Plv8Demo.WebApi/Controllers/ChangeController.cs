@@ -68,5 +68,14 @@
             return this.service.Change(tableName, data, idKeys, ChangeOperation.Delete, null)
                 .GetFuncData(this);
         }
+
+        /// <summary> Returns Open API schema JSON for change methods </summary>
+        [HttpGet]
+        public ValueTask<IActionResult> GetSchema()
+        {
+            var schema = this.service.GetSchema("change");
+
+            return schema.GetFuncData(this);
+        }
     }
 }
