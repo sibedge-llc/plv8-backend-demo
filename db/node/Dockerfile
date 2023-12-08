@@ -1,4 +1,4 @@
-﻿FROM sibedge/plv8-framework-deploy
+﻿FROM sibedge/plv8-framework-deploy:py
 WORKDIR /usr/deploy
 
 ADD dump/${DUMP_FILE} ./plv8-framework/Sql
@@ -24,4 +24,4 @@ CMD cd plv8-framework && \
 	 && PGPASSWORD=${PLV8_POSTGRES_PASSWORD} psql -h ${PLV8_POSTGRES_HOST} -p ${PLV8_POSTGRES_PORT} -U ${PLV8_POSTGRES_USER} -d ${DB_NAME} -a -f ./Sql/audit.sql \
     ) \
   && cd Plv8 \
-  && npm run deploy
+  && python deploy.py

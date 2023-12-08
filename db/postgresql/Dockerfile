@@ -1,4 +1,4 @@
-﻿FROM postgres:16.0-alpine AS installer
+﻿FROM postgres:16.1-alpine AS installer
 
 RUN buildDependencies="ca-certificates make git bison build-base flex clang15 clang15-dev llvm15 llvm15-libs" \
   && apk add --update ${buildDependencies}
@@ -8,7 +8,7 @@ RUN git clone https://github.com/postgrespro/jsquery.git \
 RUN apk del ${buildDependencies}
 
 
-FROM sibedge/postgres-plv8-bigint:16.0-3.2.0-alpine 
+FROM sibedge/postgres-plv8-bigint:16.1-3.2.0-alpine 
 
 COPY --from=installer /usr/local/lib/postgresql/jsquery.so /usr/local/lib/postgresql
 COPY --from=installer /usr/local/share/postgresql/extension/jsquery--1.0--1.1.sql /usr/local/share/postgresql/extension
