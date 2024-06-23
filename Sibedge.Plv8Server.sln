@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sibedge.Plv8Demo.Services",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sibedge.Plv8Demo.WebApi", "Sibedge.Plv8Demo.WebApi\Sibedge.Plv8Demo.WebApi.csproj", "{5CDFE6E8-0E3D-467E-AD85-503BDC08919A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sibedge.Plv8Server", "Sibedge.Plv8Server\Sibedge.Plv8Server\Sibedge.Plv8Server.csproj", "{B0A5F075-8F42-44ED-81F5-8F0F16FDE114}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{5CDFE6E8-0E3D-467E-AD85-503BDC08919A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5CDFE6E8-0E3D-467E-AD85-503BDC08919A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5CDFE6E8-0E3D-467E-AD85-503BDC08919A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B0A5F075-8F42-44ED-81F5-8F0F16FDE114}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B0A5F075-8F42-44ED-81F5-8F0F16FDE114}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B0A5F075-8F42-44ED-81F5-8F0F16FDE114}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B0A5F075-8F42-44ED-81F5-8F0F16FDE114}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

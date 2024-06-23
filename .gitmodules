@@ -1,6 +1,3 @@
 [submodule "Plv8"]
 	path = Plv8
 	url = ssh://git@github.com/sibedge-llc/plv8-framework.git
-[submodule "Sibedge.Plv8Server"]
-	path = Sibedge.Plv8Server
-	url = ssh://git@github.com/sibedge-llc/plv8-server.git
