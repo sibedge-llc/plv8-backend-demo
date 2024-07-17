@@ -1,5 +1,6 @@
 ﻿namespace Sibedge.Plv8Demo.WebApi.Controllers
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
     using Plv8Server;
@@ -29,9 +30,10 @@
         /// <summary> Execute graphQL query </summary>
         /// <param name="query"> Query data </param>
         [HttpPost]
-        public ValueTask<IActionResult> Query([FromBody] GraphQlQuery query)
+        public ValueTask<IActionResult> Query([FromBody] GraphQlQuery query, CancellationToken cancellationToken)
         {
-            return this.service.PerformQuery(query, null).GetFuncData(this);
+            return this.service.PerformQuery(query, null, cancellationToken)
+                .GetFuncData(this);
         }
     }
 }
