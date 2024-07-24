@@ -1,5 +1,5 @@
 $tmp = "dump-tmp.zip"
-Invoke-WebRequest -OutFile $tmp http://passgen.alexfadeev.ru/scripts/demo-medium-20170815.zip
+curl -v https://bit.ly/demo-medium-20170815 -o $tmp
 Expand-Archive -Path $tmp -DestinationPath .\db\node\dump -Force
 $tmp | Remove-Item
 

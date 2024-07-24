@@ -1,4 +1,4 @@
-wget http://passgen.alexfadeev.ru/scripts/demo-medium-20170815.zip
+wget -O demo-medium-20170815.zip https://bit.ly/demo-medium-20170815
 
 unzip ./demo-medium-20170815.zip -d ./db/node/dump
 
