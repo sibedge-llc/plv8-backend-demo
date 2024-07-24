@@ -11,8 +11,10 @@ CREATE VIEW public.passengers AS
   FROM tickets;
 
 INSERT INTO graphql.additional_foreign_keys(
-            column_name, foreign_table_name, foreign_column_name, table_name)
-    VALUES ('passenger_id', 'passengers', 'id', 'tickets');
+            column_name, foreign_table_name, foreign_column_name, table_name, is_array)
+    VALUES
+	  ('passenger_id', 'passengers', 'id', 'tickets', FALSE),
+	  ('aircraft_id', 'aircrafts', 'id', 'flights_v', FALSE);
 
 REFRESH MATERIALIZED VIEW graphql.schema_foreign_keys;
 REFRESH MATERIALIZED VIEW graphql.schema_columns;
